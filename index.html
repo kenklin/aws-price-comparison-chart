@@ -81,11 +81,19 @@ d3.tsv("costs.tsv", function(error, data) {
   ]);
 
   svg.append("g")
+    .append("text")
+      .attr("x", width/16)
+      .attr("y", 20)
+      .style("font-size", "20px")
+      .style("font-weight", "bold")
+      .text("AWS EC2 Price Comparison");
+  
+  svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis)
     .append("text")
-      .attr("x", width)
+      .attr("x", width + 3)
       .text("Month");
 
   svg.append("g")
