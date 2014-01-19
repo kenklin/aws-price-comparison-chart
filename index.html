@@ -61,21 +61,22 @@ var svg = d3.select("body").append("svg")
 d3.tsv("costs.tsv", function(error, data) {
   color.domain(d3.keys(data[0]).filter(function(key) { return key !== "month"; }));
 
+  data.forEach(function(d) {
+    d.month = parseInt(d.month);
+  });
+  
   var rates = color.domain().map(function(name) {
     return {
       name: name,
       values: data.map(function(d) {
-        return {month: d.month, cost: +d[name]};
+        return {month: parseInt(d.month), cost: +d[name]};
       })
     };
   });
 
-  x.domain([
-    0,
-    36	// d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.month; }); })
-  ]);
+  x.domain(d3.extent(data, function(d) { return d.month; }));
   y.domain([
-    0, // d3.min(rates, function(c) { return d3.min(c.values, function(v) { return v.cost; }); }),
+    d3.min(rates, function(c) { return d3.min(c.values, function(v) { return v.cost; }); }),
     d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.cost; }); })
   ]);
 
