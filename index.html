@@ -139,6 +139,8 @@ d3.tsv("costs.tsv", function(error, data) {
   // http://bl.ocks.org/mbostock/3902569
   // http://stackoverflow.com/questions/19003832/d3-x-value-mouseover-function-returns-nan
   // http://jsfiddle.net/U4CGz/7/
+  // http://bl.ocks.org/benjchristensen/2657838
+  // http://code.shutterstock.com/rickshaw/examples/lines.html
   var focus = svg.append("g")
       .attr("class", "focus")
       .style("display", "none");
@@ -161,13 +163,13 @@ d3.tsv("costs.tsv", function(error, data) {
       .on("mousemove", mousemove);
 
   function mousemove() {
-    var x0 = x.invert(d3.mouse(this)[0]),
+    var x0 = x.invert(d3.mouse(this)[0]),	// 0.00 .. 36.00
         i = bisectMonth(data, x0, 1),
         d0 = data[i - 1].month,
         d1 = data[i].month,
-        c = x0 - d0 > d1 - x0 ? [d1, i] : [d0, i - 1];
+        c = x0 - d0 > d1 - x0 ? d1 : d0;	// 0 .. 36 rounded
     circles.attr('transform', function (d) {
-        return 'translate(' + x(c[0]) + ',' + y(d.values[c[1]].cost) + ')';
+      return 'translate(' + x(c) + ',' + y(d.values[c].cost) + ')';
     });
   }  
 });
