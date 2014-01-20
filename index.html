@@ -6,6 +6,11 @@ body {
   font: 10px sans-serif;
 }
 
+td.cost {
+  font-weight:bold;
+  text-align:right;
+}
+
 .axis path,
 .axis line {
   fill: none;
@@ -167,11 +172,29 @@ d3.tsv("costs.tsv", function(error, data) {
         i = bisectMonth(data, x0, 1),
         d0 = data[i - 1].month,
         d1 = data[i].month,
-        c = x0 - d0 > d1 - x0 ? d1 : d0;	// 0 .. 36 rounded
+        month = x0 - d0 > d1 - x0 ? d1 : d0;	// 0 .. 36 rounded
     circles.attr('transform', function (d) {
-      return 'translate(' + x(c) + ',' + y(d.values[c].cost) + ')';
+      return 'translate(' + x(month) + ',' + y(d.values[month].cost) + ')';
     });
+ 
+    // https://groups.google.com/forum/#!topic/d3-js/LPVuNpPm0Wc
+    d3.select("#th-cost").text(month + " Month Total");
+    for (i = 0; i < rates.length; i++) {
+      d3.select("#td-name" + i).text(rates[i].name);
+      d3.select("#td-cost" + i).text(formatCurrency(rates[i].values[month].cost))
+        .style('color', color(rates[i].name));
+    }
   }  
 });
-
 </script>
+
+<table id="cost-table">
+  <tr><th>Instance Plan</th><th id="th-cost">Month Total</th></tr>
+  <tr><td id="td-name0"></td><td id="td-cost0" class="cost"></td></tr>
+  <tr><td id="td-name1"></td><td id="td-cost1" class="cost"></td></tr>
+  <tr><td id="td-name2"></td><td id="td-cost2" class="cost"></td></tr>
+  <tr><td id="td-name3"></td><td id="td-cost3" class="cost"></td></tr>
+  <tr><td id="td-name4"></td><td id="td-cost4" class="cost"></td></tr>
+  <tr><td id="td-name5"></td><td id="td-cost5" class="cost"></td></tr>
+</table>
+</body>
