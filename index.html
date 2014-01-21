@@ -6,10 +6,6 @@ body {
   font: 10px sans-serif;
 }
 
-table {
-  margin-left:30px
-}
-
 th {
   border: 1px solid silver;
 }
@@ -22,6 +18,10 @@ td.totcost {
 td.savings {
   text-align:right;
   font-style:italic
+}
+
+div {
+  margin-left:30px
 }
 
 .axis path,
@@ -229,16 +229,17 @@ d3.tsv("costs.tsv", function(error, data) {
 });
 </script>
 
+<div>
 <table id="cost-table">
   <thead>
     <tr>
       <th>Instance Plan</th>
       <th id="th-cost">Month Total</th>
-      <th>Savings 1</th>
-      <th>Savings 2</th>
-      <th>Savings 3</th>
-      <th>Savings 4</th>
-      <th>Savings 5</th>
+      <th>Difference 1</th>
+      <th>Difference 2</th>
+      <th>Difference 3</th>
+      <th>Difference 4</th>
+      <th>Difference 5</th>
     </tr>
   </thead>
   <tbody>
@@ -283,4 +284,8 @@ d3.tsv("costs.tsv", function(error, data) {
     </tr>
   </tbody>
 </table>
+
+<br><br><br>
+Source available on <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.
+</div>
 </body>
