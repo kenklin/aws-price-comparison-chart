@@ -6,9 +6,22 @@ body {
   font: 10px sans-serif;
 }
 
-td.cost {
-  font-weight:bold;
+table {
+  margin-left:30px
+}
+
+th {
+  border: 1px solid silver;
+}
+
+td.totcost {
   text-align:right;
+  font-weight:bold
+}
+
+td.savings {
+  text-align:right;
+  font-style:italic
 }
 
 .axis path,
@@ -39,13 +52,19 @@ td.cost {
 <script>
 // Inspired by http://bl.ocks.org/mbostock/3884955
 
-var margin = {top: 20, right: 130, bottom: 30, left: 30},
+var margin = {top: 20, right: 200, bottom: 30, left: 30},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 var bisectMonth = d3.bisector(function(d) { return d.month; }).left,
-    formatValue = d3.format(",.2f"),
-    formatCurrency = function(d) { return "$" + formatValue(d); };
+    formatCurrencyValue = d3.format(",.2f"),
+    formatCurrency = function(d) { return "$" + formatCurrencyValue(d); },
+    formatPercentValue = d3.format(",.0f"),
+    formatPercent = function(a,b) {
+      return (b > 0)
+        ? "(" + formatPercentValue(100 * a / b) + "%)"
+        : "";
+    };
 
 var x = d3.scale.linear()
     .range([0, width]);
@@ -176,25 +195,92 @@ d3.tsv("costs.tsv", function(error, data) {
     circles.attr('transform', function (d) {
       return 'translate(' + x(month) + ',' + y(d.values[month].cost) + ')';
     });
- 
+
+	// Load month's costs into sortedRows, then sort from low to high
+	var sortedRows = [];
+	for (i = 0; i < rates.length; i++) {
+	  sortedRows.push({
+	    name: rates[i].name,
+	    cost: rates[i].values[month].cost
+	  });
+	}
+	sortedRows.sort(function(a,b) { return a.cost - b.cost;});
+
     // https://groups.google.com/forum/#!topic/d3-js/LPVuNpPm0Wc
     d3.select("#th-cost").text(month + " Month Total");
-    for (i = 0; i < rates.length; i++) {
-      d3.select("#td-name" + i).text(rates[i].name);
-      d3.select("#td-cost" + i).text(formatCurrency(rates[i].values[month].cost))
-        .style('color', color(rates[i].name));
+    for (i = 0; i < sortedRows.length; i++) {
+      var iCost = sortedRows[i].cost;
+      var iCostId = "#td-cost" + i;
+      d3.select("#td-name" + i).text(sortedRows[i].name);
+      d3.select(iCostId).text(formatCurrency(iCost))
+        .style('color', color(sortedRows[i].name));
+
+      // Calculate and display the price difference triangle
+  	  for (j = i + 1; j < sortedRows.length; j++) {
+        var jCost = sortedRows[j].cost;
+        var jCostId = "#td-cost" + j + "-" + i;
+        var savings = jCost - iCost;
+        d3.select(jCostId)
+          .text("+" + formatCurrency(savings) + formatPercent(savings, iCost))
+          .style('color', color(sortedRows[i].name));      
+  	  }
     }
   }  
 });
 </script>
 
 <table id="cost-table">
-  <tr><th>Instance Plan</th><th id="th-cost">Month Total</th></tr>
-  <tr><td id="td-name0"></td><td id="td-cost0" class="cost"></td></tr>
-  <tr><td id="td-name1"></td><td id="td-cost1" class="cost"></td></tr>
-  <tr><td id="td-name2"></td><td id="td-cost2" class="cost"></td></tr>
-  <tr><td id="td-name3"></td><td id="td-cost3" class="cost"></td></tr>
-  <tr><td id="td-name4"></td><td id="td-cost4" class="cost"></td></tr>
-  <tr><td id="td-name5"></td><td id="td-cost5" class="cost"></td></tr>
+  <thead>
+    <tr>
+      <th>Instance Plan</th>
+      <th id="th-cost">Month Total</th>
+      <th>Savings 1</th>
+      <th>Savings 2</th>
+      <th>Savings 3</th>
+      <th>Savings 4</th>
+      <th>Savings 5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="td-name0"></td>
+      <td id="td-cost0" class="totcost"></td>
+    </tr>
+    <tr>
+      <td id="td-name1"></td>
+      <td id="td-cost1" class="totcost"></td>
+      <td id="td-cost1-0" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name2"></td>
+      <td id="td-cost2" class="totcost"></td>
+      <td id="td-cost2-1" class="savings"></td>
+      <td id="td-cost2-0" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name3"></td>
+      <td id="td-cost3" class="totcost"></td>
+      <td id="td-cost3-2" class="savings"></td>
+      <td id="td-cost3-1" class="savings"></td>
+      <td id="td-cost3-0" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name4"></td>
+      <td id="td-cost4" class="totcost"></td>
+      <td id="td-cost4-3" class="savings"></td>
+      <td id="td-cost4-2" class="savings"></td>
+      <td id="td-cost4-1" class="savings"></td>
+      <td id="td-cost4-0" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name5"></td>
+      <td id="td-cost5" class="totcost"></td>
+      <td id="td-cost5-4" class="savings"></td>
+      <td id="td-cost5-3" class="savings"></td>
+      <td id="td-cost5-2" class="savings"></td>
+      <td id="td-cost5-1" class="savings"></td>
+      <td id="td-cost5-0" class="savings"></td>
+    </tr>
+  </tbody>
 </table>
 </body>

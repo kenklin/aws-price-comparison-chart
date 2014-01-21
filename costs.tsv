@@ -1,4 +1,4 @@
-month	t1.micro On Demand	t1.micro 1 Year Reserved	t1.micro 3 Year Reserved	m1.small On Demand	m1.small 1 Year Reserved	m1.small 3 Year Reserved
+month	Linux t1.micro On Demand	Linux Heavy t1.micro 1 Year Reserved	Linux Heavy t1.micro 3 Year Reserved	Linux m1.small On Demand	Linux Heavy m1.small 1 Year Reserved	Linux Heavy m1.small 3 Year Reserved
 0	0.000	62.000	100.000	0.000	61.000	96.000
 1	14.600	65.650	103.650	43.800	85.820	115.710
 2	29.200	69.300	107.300	87.600	110.640	135.420
