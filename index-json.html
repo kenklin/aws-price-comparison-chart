@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+th {
+  border: 1px solid silver;
+}
+
+td.totcost {
+  text-align:right;
+  font-weight:bold
+}
+
+td.savings {
+  text-align:right;
+  font-style:italic
+}
+
+div {
+  margin-left:30px
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: none;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+// Inspired by http://bl.ocks.org/mbostock/3884955
+
+var margin = {top: 20, right: 200, bottom: 30, left: 30},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var bisectMonth = d3.bisector(function(d) { return d.month; }).left,
+    formatCurrencyValue = d3.format(",.2f"),
+    formatCurrency = function(d) { return "$" + formatCurrencyValue(d); },
+    formatPercentValue = d3.format(",.0f"),
+    formatPercent = function(a,b) {
+      return (b > 0)
+        ? "(" + formatPercentValue(100 * a / b) + "%)"
+        : "";
+    };
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .ticks(36)
+    .tickSize(3)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .tickSize(3)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.month); })
+    .y(function(d) { return y(d.cost); });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json("test.json", function(error, json) {
+  data = json.ec2offerings;
+	
+  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "month"; }));
+  data.forEach(function(d) {
+    d.month = +d.month;
+  });
+  
+  var rates = d3.entries(data).map(function(offering) {
+    var durationInYears = offering.value.duration / 31536000;
+    var z = {
+      name: offering.value.offeringType
+        + " " + offering.value.productDescription
+        + " " + offering.value.instanceType
+        + " " + durationInYears + " Yr",
+      values: offering.value.totalMonthlyCost.map(function(d, index) {
+    	return {month: +index, cost: +d};
+      })
+    }
+    return z;
+  });
+
+  x.domain([
+    d3.min(rates, function(c) { return d3.min(c.values, function(v) { return v.month; }); }),
+    d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.month; }); })
+  ]);
+  y.domain([
+    d3.min(rates, function(c) { return d3.min(c.values, function(v) { return v.cost; }); }),
+    d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.cost; }); })
+  ]);
+
+  svg.append("g")
+    .append("text")
+      .attr("x", width/16)
+      .attr("y", 20)
+      .style("font-size", "20px")
+      .style("font-weight", "bold")
+      .text("AWS EC2 Price Comparison");
+  
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("x", width + 3)
+      .text("Month");
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Total Cost (USD)");
+  
+  var rate = svg.selectAll(".rate")
+      .data(rates)
+    .enter().append("g")
+      .attr("class", "rate");
+
+  rate.append("path")	// Draws the lines
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+      .style("stroke", function(d) { return color(d.name); });
+
+  rate.append("text")
+      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+      .attr("transform", function(d) { return "translate(" + x(d.value.month) + "," + y(d.value.cost) + ")"; })
+      .attr("x", 3)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.name; });
+
+  // http://bl.ocks.org/mbostock/3902569
+  // http://stackoverflow.com/questions/19003832/d3-x-value-mouseover-function-returns-nan
+  // http://jsfiddle.net/U4CGz/7/
+  // http://bl.ocks.org/benjchristensen/2657838
+  // http://code.shutterstock.com/rickshaw/examples/lines.html
+  var focus = svg.append("g")
+      .attr("class", "focus")
+      .style("display", "none");
+
+  var circles = focus.selectAll('circle')
+      .data(rates)
+    .enter()
+      .append('circle')
+      .attr('class', 'circle')
+      .attr('r', 4)
+      .attr('fill', 'none')
+      .attr('stroke', function (d) { return color(d.name); });
+
+  rate.append("rect")
+      .attr("class", "overlay")
+      .attr("width", width)
+      .attr("height", height)
+      .on("mouseover", function() { focus.style("display", null); })
+      .on("mouseout", function() { focus.style("display", "none"); })
+      .on("mousemove", mousemove);
+
+  function mousemove() {
+    var x0 = x.invert(d3.mouse(this)[0]),	// 0.00 .. 36.00
+        month = Math.round(x0);				// 0 .. 36
+    circles.attr('transform', function (d) {
+      return 'translate(' + x(month) + ',' + y(d.values[month].cost) + ')';
+    });
+
+	// Load month's costs into sortedRows, then sort from high to low
+	var sortedRows = [];
+	for (i = 0; i < rates.length; i++) {
+	  sortedRows.push({
+	    name: rates[i].name,
+	    cost: rates[i].values[month].cost
+	  });
+	}
+	sortedRows.sort(function(a,b) { return b.cost - a.cost;});
+
+    // https://groups.google.com/forum/#!topic/d3-js/LPVuNpPm0Wc
+    d3.select("#th-cost").text(month + " Month Total");
+    for (i = 0; i < sortedRows.length; i++) {
+      var iCost = sortedRows[i].cost;
+      var iCostId = "#td-cost" + i;
+      d3.select("#td-name" + i).text(sortedRows[i].name);
+      d3.select(iCostId).text(formatCurrency(iCost))
+        .style('color', color(sortedRows[i].name));
+
+      // Calculate and display the price difference triangle
+  	  for (j = i + 1; j < sortedRows.length; j++) {
+        var jCost = sortedRows[j].cost;
+        var jCostId = "#td-cost" + i + "-" + j;
+        var savings = iCost - jCost;
+        d3.select(jCostId)
+          .text("+" + formatCurrency(savings) + formatPercent(savings, jCost))
+          .style('color', color(sortedRows[j].name));      
+  	  }
+    }
+  }  
+});
+</script>
+
+<div>
+<table id="cost-table">
+  <thead>
+    <tr>
+      <th>EC2 Price Option</th>
+      <th id="th-cost">Month Total</th>
+      <th>Difference 1</th>
+      <th>Difference 2</th>
+      <th>Difference 3</th>
+      <th>Difference 4</th>
+      <th>Difference 5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="td-name0"></td>
+      <td id="td-cost0" class="totcost"></td>
+      <td id="td-cost0-1" class="savings"></td>
+      <td id="td-cost0-2" class="savings"></td>
+      <td id="td-cost0-3" class="savings"></td>
+      <td id="td-cost0-4" class="savings"></td>
+      <td id="td-cost0-5" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name1"></td>
+      <td id="td-cost1" class="totcost"></td>
+      <td id="td-cost1-2" class="savings"></td>
+      <td id="td-cost1-3" class="savings"></td>
+      <td id="td-cost1-4" class="savings"></td>
+      <td id="td-cost1-5" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name2"></td>
+      <td id="td-cost2" class="totcost"></td>
+      <td id="td-cost2-3" class="savings"></td>
+      <td id="td-cost2-4" class="savings"></td>
+      <td id="td-cost2-5" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name3"></td>
+      <td id="td-cost3" class="totcost"></td>
+      <td id="td-cost3-4" class="savings"></td>
+      <td id="td-cost3-5" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name4"></td>
+      <td id="td-cost4" class="totcost"></td>
+      <td id="td-cost4-5" class="savings"></td>
+    </tr>
+    <tr>
+      <td id="td-name5"></td>
+      <td id="td-cost5" class="totcost"></td>
+    </tr>
+  </tbody>
+</table>
+
+<br><br><br>
+Source available on <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.
+</div>
+</body>
