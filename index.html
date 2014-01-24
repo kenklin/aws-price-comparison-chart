@@ -15,6 +15,11 @@ td.totcost {
   font-weight:bold
 }
 
+td.cost {
+  text-align:right;
+  color:gray
+}
+
 td.savings {
   text-align:right;
   font-style:italic
@@ -100,18 +105,19 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 d3.json("test.json", function(error, json) {
+  var SECONDS_IN_YEAR = 31536000;
+  var SECONDS_IN_MONTH = SECONDS_IN_YEAR / 12;// 2628000
+  var HOURS_IN_MONTH = 365 * 24 / 12; 		// 730
+
   data = json.ec2offerings;
 	
   color.domain(d3.keys(data[0]).filter(function(key) { return key !== "month"; }));
+
   data.forEach(function(d) {
     d.month = +d.month;
   });
   
   function calculateTotalCost(offering) {
-	var SECONDS_IN_YEAR		= 31536000;
-	var SECONDS_IN_MONTH	= SECONDS_IN_YEAR / 12;	// 2628000
-	var HOURS_IN_MONTH		= 365 * 24 / 12; 		// 730
-
 	var duration = offering.value.duration;
     var fixedPrice = offering.value.fixedPrice;
     var hourlyPrice = offering.value.hourlyPrice;
@@ -137,12 +143,13 @@ d3.json("test.json", function(error, json) {
   }
 	
   var rates = d3.entries(data).map(function(offering) {
-    var durationInYears = offering.value.duration / 31536000;
     var z = {
       name: offering.value.offeringType
         + " " + offering.value.productDescription
-        + " " + offering.value.instanceType
-        + " " + durationInYears + " Yr",
+        + " " + offering.value.instanceType,
+      durationInYears: offering.value.duration / SECONDS_IN_YEAR,
+      fixedPrice: offering.value.fixedPrice,
+      monthlyPrice: offering.value.hourlyPrice * HOURS_IN_MONTH,
 //    values: offering.value.totalMonthlyCost.map(function(d, index) {
 //      return {month: +index, cost: +d};
 //    })
@@ -241,6 +248,9 @@ d3.json("test.json", function(error, json) {
 	for (i = 0; i < rates.length; i++) {
 	  sortedRows.push({
 	    name: rates[i].name,
+        durationInYears: rates[i].durationInYears,
+        fixedPrice: rates[i].fixedPrice,
+        monthlyPrice: rates[i].monthlyPrice,
 	    cost: rates[i].values[month].cost
 	  });
 	}
@@ -249,6 +259,11 @@ d3.json("test.json", function(error, json) {
     // https://groups.google.com/forum/#!topic/d3-js/LPVuNpPm0Wc
     d3.select("#th-cost").text(month + " Month Total");
     for (i = 0; i < sortedRows.length; i++) {
+      // Fixed columns
+      d3.select("#td-fixed" + i).text(formatCurrency(sortedRows[i].fixedPrice) + "/" + sortedRows[i].durationInYears + "yr");
+      d3.select("#td-monthly" + i).text(formatCurrency(sortedRows[i].monthlyPrice));
+
+      // Calculate total costs
       var iCost = sortedRows[i].cost;
       var iCostId = "#td-cost" + i;
       d3.select("#td-name" + i).text(sortedRows[i].name);
@@ -273,7 +288,9 @@ d3.json("test.json", function(error, json) {
 <table id="cost-table">
   <thead>
     <tr>
-      <th>EC2 Price Option</th>
+      <th>EC2 Offering</th>
+      <th>Fixed</th>
+      <th>Monthly</th>
       <th id="th-cost">Month Total</th>
       <th>Difference 1</th>
       <th>Difference 2</th>
@@ -285,6 +302,8 @@ d3.json("test.json", function(error, json) {
   <tbody>
     <tr>
       <td id="td-name0"></td>
+      <td id="td-fixed0" class="cost"></td>
+      <td id="td-monthly0" class="cost"></td>
       <td id="td-cost0" class="totcost"></td>
       <td id="td-cost0-1" class="savings"></td>
       <td id="td-cost0-2" class="savings"></td>
@@ -294,6 +313,8 @@ d3.json("test.json", function(error, json) {
     </tr>
     <tr>
       <td id="td-name1"></td>
+      <td id="td-fixed1" class="cost"></td>
+      <td id="td-monthly1" class="cost"></td>
       <td id="td-cost1" class="totcost"></td>
       <td id="td-cost1-2" class="savings"></td>
       <td id="td-cost1-3" class="savings"></td>
@@ -302,6 +323,8 @@ d3.json("test.json", function(error, json) {
     </tr>
     <tr>
       <td id="td-name2"></td>
+      <td id="td-fixed2" class="cost"></td>
+      <td id="td-monthly2" class="cost"></td>
       <td id="td-cost2" class="totcost"></td>
       <td id="td-cost2-3" class="savings"></td>
       <td id="td-cost2-4" class="savings"></td>
@@ -309,17 +332,23 @@ d3.json("test.json", function(error, json) {
     </tr>
     <tr>
       <td id="td-name3"></td>
+      <td id="td-fixed3" class="cost"></td>
+      <td id="td-monthly3" class="cost"></td>
       <td id="td-cost3" class="totcost"></td>
       <td id="td-cost3-4" class="savings"></td>
       <td id="td-cost3-5" class="savings"></td>
     </tr>
     <tr>
       <td id="td-name4"></td>
+      <td id="td-fixed4" class="cost"></td>
+      <td id="td-monthly4" class="cost"></td>
       <td id="td-cost4" class="totcost"></td>
       <td id="td-cost4-5" class="savings"></td>
     </tr>
     <tr>
       <td id="td-name5"></td>
+      <td id="td-fixed5" class="cost"></td>
+      <td id="td-monthly5" class="cost"></td>
       <td id="td-cost5" class="totcost"></td>
     </tr>
   </tbody>
