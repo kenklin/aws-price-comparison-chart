@@ -99,23 +99,62 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.tsv("costs.tsv", function(error, data) {
+d3.json("test.json", function(error, json) {
+  data = json.ec2offerings;
+	
   color.domain(d3.keys(data[0]).filter(function(key) { return key !== "month"; }));
-
   data.forEach(function(d) {
     d.month = +d.month;
   });
   
-  var rates = color.domain().map(function(name) {
-    return {
-      name: name,
-      values: data.map(function(d) {
-        return {month: d.month, cost: +d[name]};
-      })
-    };
+  function calculateTotalCost(offering) {
+	var SECONDS_IN_YEAR		= 31536000;
+	var SECONDS_IN_MONTH	= SECONDS_IN_YEAR / 12;	// 2628000
+	var HOURS_IN_MONTH		= 365 * 24 / 12; 		// 730
+
+	var duration = offering.value.duration;
+    var fixedPrice = offering.value.fixedPrice;
+    var hourlyPrice = offering.value.hourlyPrice;
+	
+    var totalMonthlyCost = [];
+    if (fixedPrice >= 0 && hourlyPrice >= 0) {
+      var monthlyPrice = hourlyPrice * HOURS_IN_MONTH;
+      var durationInMonths = duration / SECONDS_IN_MONTH;
+
+      totalMonthlyCost[0] = {month:0, cost: +fixedPrice};
+      for (var month = 1; month <= 36; month++) {
+        var terms = fixedPrice > 0
+          ? Math.floor(((month - 1) / durationInMonths) + 1)	// 1 year term 1 = months 0-12, 1 year term 2 = months 13-24
+          : 0;	// On-Demand
+        totalMonthlyCost[month] = {
+          month: month,
+	      cost: (terms * fixedPrice) + (month * monthlyPrice)
+	    }
+      }
+    }
+
+    return totalMonthlyCost;
+  }
+	
+  var rates = d3.entries(data).map(function(offering) {
+    var durationInYears = offering.value.duration / 31536000;
+    var z = {
+      name: offering.value.offeringType
+        + " " + offering.value.productDescription
+        + " " + offering.value.instanceType
+        + " " + durationInYears + " Yr",
+//    values: offering.value.totalMonthlyCost.map(function(d, index) {
+//      return {month: +index, cost: +d};
+//    })
+      values: calculateTotalCost(offering)
+    }
+    return z;
   });
 
-  x.domain(d3.extent(data, function(d) { return d.month; }));
+  x.domain([
+    d3.min(rates, function(c) { return d3.min(c.values, function(v) { return v.month; }); }),
+    d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.month; }); })
+  ]);
   y.domain([
     d3.min(rates, function(c) { return d3.min(c.values, function(v) { return v.cost; }); }),
     d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.cost; }); })
@@ -146,13 +185,13 @@ d3.tsv("costs.tsv", function(error, data) {
       .attr("dy", ".71em")
       .style("text-anchor", "end")
       .text("Total Cost (USD)");
-
+  
   var rate = svg.selectAll(".rate")
       .data(rates)
     .enter().append("g")
       .attr("class", "rate");
 
-  rate.append("path")
+  rate.append("path")	// Draws the lines
       .attr("class", "line")
       .attr("d", function(d) { return line(d.values); })
       .style("stroke", function(d) { return color(d.name); });
@@ -175,7 +214,7 @@ d3.tsv("costs.tsv", function(error, data) {
 
   var circles = focus.selectAll('circle')
       .data(rates)
-      .enter()
+    .enter()
       .append('circle')
       .attr('class', 'circle')
       .attr('r', 4)
@@ -192,10 +231,7 @@ d3.tsv("costs.tsv", function(error, data) {
 
   function mousemove() {
     var x0 = x.invert(d3.mouse(this)[0]),	// 0.00 .. 36.00
-        i = bisectMonth(data, x0, 1),
-        d0 = data[i - 1].month,
-        d1 = data[i].month,
-        month = x0 - d0 > d1 - x0 ? d1 : d0;	// 0 .. 36 rounded
+        month = Math.round(x0);				// 0 .. 36
     circles.attr('transform', function (d) {
       return 'translate(' + x(month) + ',' + y(d.values[month].cost) + ')';
     });
@@ -289,7 +325,7 @@ d3.tsv("costs.tsv", function(error, data) {
   </tbody>
 </table>
 
-<br><br><br>
+<br><br>
 Source available on <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.
 </div>
 </body>
