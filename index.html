@@ -81,8 +81,6 @@ var x = d3.scale.linear()
 var y = d3.scale.linear()
     .range([height, 0]);
 
-var color = d3.scale.category10();
-
 var xAxis = d3.svg.axis()
     .scale(x)
     .ticks(36)
@@ -104,56 +102,60 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.json("test.json", function(error, json) {
-  var SECONDS_IN_YEAR = 31536000;
-  var SECONDS_IN_MONTH = SECONDS_IN_YEAR / 12;// 2628000
-  var HOURS_IN_MONTH = 365 * 24 / 12; 		// 730
+var SECONDS_IN_YEAR = 31536000;
+var SECONDS_IN_MONTH = SECONDS_IN_YEAR / 12;// 2628000
+var HOURS_IN_MONTH = 365 * 24 / 12; 		// 730
 
-  data = json.ec2offerings;
-	
-  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "month"; }));
+function createUniqueName(value, durationInYears) {
+  if (durationInYears == null)
+    durationInYears = value.duration / SECONDS_IN_YEAR;
+  return ((durationInYears > 0) ? durationInYears + "-yr" : "")
+    + " " + value.offeringType
+    + " " + value.productDescription
+    + " " + value.instanceType;
+}
 
-  data.forEach(function(d) {
-    d.month = +d.month;
-  });
-  
-  function calculateTotalCost(offering) {
-	var duration = offering.value.duration;
-    var fixedPrice = offering.value.fixedPrice;
-    var hourlyPrice = offering.value.hourlyPrice;
-	
+  function calculateTotalCost(offering, monthlyPrice) {
     var totalMonthlyCost = [];
-    if (fixedPrice >= 0 && hourlyPrice >= 0) {
-      var monthlyPrice = hourlyPrice * HOURS_IN_MONTH;
-      var durationInMonths = duration / SECONDS_IN_MONTH;
+    var durationInMonths = offering.value.duration / SECONDS_IN_MONTH;
 
-      totalMonthlyCost[0] = {month:0, cost: +fixedPrice};
-      for (var month = 1; month <= 36; month++) {
-        var terms = fixedPrice > 0
-          ? Math.floor(((month - 1) / durationInMonths) + 1)	// 1 year term 1 = months 0-12, 1 year term 2 = months 13-24
-          : 0;	// On-Demand
-        totalMonthlyCost[month] = {
-          month: month,
-	      cost: (terms * fixedPrice) + (month * monthlyPrice)
-	    }
+    totalMonthlyCost[0] = {
+      month: 0, 
+      cost: +offering.value.fixedPrice
+    };
+    for (var month = 1; month <= 36; month++) {
+      var terms = offering.value.fixedPrice > 0
+        ? Math.floor(((month - 1) / durationInMonths) + 1)	// 1 year term 1 = months 0-12, 1 year term 2 = months 13-24
+        : 0;	// On-Demand
+      totalMonthlyCost[month] = {
+        month: month,
+        cost: (terms * offering.value.fixedPrice) + (month * monthlyPrice)
       }
     }
 
     return totalMonthlyCost;
   }
 	
+d3.json("test.json", function(error, json) {
+  data = json.ec2offerings;
+
+  // Assign colors to each unique name	
+  var color = d3.scale.category10();
+  color.domain(data.map(function(p) { return createUniqueName(p); }));
+
+  data.forEach(function(d) {
+    d.month = +d.month;
+  });
+  
   var rates = d3.entries(data).map(function(offering) {
+    var durationInYears = offering.value.duration / SECONDS_IN_YEAR;
+    var monthlyPrice = offering.value.hourlyPrice * HOURS_IN_MONTH;
     var z = {
-      name: offering.value.offeringType
-        + " " + offering.value.productDescription
-        + " " + offering.value.instanceType,
-      durationInYears: offering.value.duration / SECONDS_IN_YEAR,
+      name: createUniqueName(offering.value, durationInYears),
+      durationInYears: durationInYears,
       fixedPrice: offering.value.fixedPrice,
-      monthlyPrice: offering.value.hourlyPrice * HOURS_IN_MONTH,
-//    values: offering.value.totalMonthlyCost.map(function(d, index) {
-//      return {month: +index, cost: +d};
-//    })
-      values: calculateTotalCost(offering)
+      monthlyPrice: monthlyPrice,
+      values: calculateTotalCost(offering, monthlyPrice)
     }
     return z;
   });
@@ -260,7 +262,7 @@ d3.json("test.json", function(error, json) {
     d3.select("#th-cost").text(month + " Month Total");
     for (i = 0; i < sortedRows.length; i++) {
       // Fixed columns
-      d3.select("#td-fixed" + i).text(formatCurrency(sortedRows[i].fixedPrice) + "/" + sortedRows[i].durationInYears + "yr");
+      d3.select("#td-fixed" + i).text(formatCurrency(sortedRows[i].fixedPrice));
       d3.select("#td-monthly" + i).text(formatCurrency(sortedRows[i].monthlyPrice));
 
       // Calculate total costs
@@ -355,6 +357,7 @@ d3.json("test.json", function(error, json) {
 </table>
 
 <br><br>
-Source available on <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.
+Authoritative AWS EC2 Pricing <a href="http://aws.amazon.com/ec2/pricing/">here</a>.<br>
+Client source available on <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
 </div>
 </body>
