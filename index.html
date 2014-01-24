@@ -103,7 +103,7 @@ d3.tsv("costs.tsv", function(error, data) {
   color.domain(d3.keys(data[0]).filter(function(key) { return key !== "month"; }));
 
   data.forEach(function(d) {
-    d.month = parseInt(d.month);
+    d.month = +d.month;
   });
   
   var rates = color.domain().map(function(name) {
