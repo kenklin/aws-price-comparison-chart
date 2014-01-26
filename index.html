@@ -67,7 +67,7 @@ div {
 <script>
 // Inspired by http://bl.ocks.org/mbostock/3884955
 
-var margin = {top: 20, right: 220, bottom: 30, left: 30},
+var margin = {top: 20, right: 220, bottom: 20, left: 30},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -121,28 +121,30 @@ function createUniqueName(value, durationInYears) {
     + " " + value.instanceType;
 }
 
-  function calculateTotalCost(offering, monthlyPrice) {
-    var totalMonthlyCost = [];
-    var durationInMonths = offering.value.duration / SECONDS_IN_MONTH;
+function calculateTotalCost(offering, monthlyPrice) {
+  var totalMonthlyCost = [];
+  var durationInMonths = offering.value.duration / SECONDS_IN_MONTH;
 
-    totalMonthlyCost[0] = {
-      month: 0, 
-      cost: +offering.value.fixedPrice
-    };
-    for (var month = 1; month <= 36; month++) {
-      var terms = offering.value.fixedPrice > 0
-        ? Math.floor(((month - 1) / durationInMonths) + 1)	// 1 year term 1 = months 0-12, 1 year term 2 = months 13-24
-        : 0;	// On-Demand
-      totalMonthlyCost[month] = {
-        month: month,
-        cost: (terms * offering.value.fixedPrice) + (month * monthlyPrice)
-      }
+  totalMonthlyCost[0] = {
+    month: 0, 
+    cost: +offering.value.fixedPrice
+  };
+  for (var month = 1; month <= 36; month++) {
+    var terms = offering.value.fixedPrice > 0
+      ? Math.floor(((month - 1) / durationInMonths) + 1)	// 1 year term 1 = months 0-12, 1 year term 2 = months 13-24
+      : 0;	// On-Demand
+    totalMonthlyCost[month] = {
+      month: month,
+      cost: (terms * offering.value.fixedPrice) + (month * monthlyPrice)
     }
-
-    return totalMonthlyCost;
   }
-	
+
+  return totalMonthlyCost;
+}
+
 d3.json("test.json", function(error, json) {
+//d3.json("http://localhost:8080/awsec2price/awsec2price/api/us-east-1a/linux/light/t1%2emicro%2e", function(error, json) {
+//d3.json("http://localhost:8080/awsec2price/awsec2price/api/us-east-1a/linux/heavy/t1.micro,m1.small,m1.medium.", function(error, json) {
   data = json.ec2offerings;
 
   // Assign colors to each unique name	
@@ -278,7 +280,7 @@ d3.json("test.json", function(error, json) {
       d3.select(iCostId).text(formatCurrency(iCost))
         .style('color', color(sortedRows[i].name));
 
-      // Calculate and display the price difference triangle
+      // Calculate the savings triangle
   	  for (j = i + 1; j < sortedRows.length; j++) {
         var jCost = sortedRows[j].cost;
         var jCostId = "#td-cost" + i + "-" + j;
@@ -288,6 +290,8 @@ d3.json("test.json", function(error, json) {
           .style('color', color(sortedRows[j].name));      
   	  }
     }
+
+    sortedRows = null;
   }  
 });
 </script>
@@ -300,11 +304,11 @@ d3.json("test.json", function(error, json) {
       <th>Fixed</th>
       <th>Monthly</th>
       <th id="th-cost">Month Total</th>
-      <th>Difference 1</th>
-      <th>Difference 2</th>
-      <th>Difference 3</th>
-      <th>Difference 4</th>
-      <th>Difference 5</th>
+      <th>Savings 1</th>
+      <th>Savings 2</th>
+      <th>Savings 3</th>
+      <th>Savings 4</th>
+      <th>Savings 5</th>
     </tr>
   </thead>
   <tbody>
