@@ -152,7 +152,7 @@ function calculateTotalCost(offering, monthlyPrice) {
 
 //d3.json("test.json", function(error, json) {
 //d3.json("http://localhost:8080/awsec2offering/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small.", function(error, json) {
-d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small.", function(error, json) {
+d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small", function(error, json) {
   data = json.ec2offerings;
 
   // Assign colors to each unique name	
