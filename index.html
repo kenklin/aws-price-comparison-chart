@@ -150,9 +150,9 @@ function calculateTotalCost(offering, monthlyPrice) {
   return totalMonthlyCost;
 }
 
-d3.json("test.json", function(error, json) {
-//d3.json("http://localhost:8080/awsec2price/awsec2price/api/us-east-1a/linux/light/t1%2emicro%2e", function(error, json) {
-//d3.json("http://localhost:8080/awsec2price/awsec2price/api/us-east-1a/linux/heavy/t1.micro,m1.small,m1.medium.", function(error, json) {
+//d3.json("test.json", function(error, json) {
+//d3.json("http://localhost:8080/awsec2offering/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small.", function(error, json) {
+d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small.", function(error, json) {
   data = json.ec2offerings;
 
   // Assign colors to each unique name	
@@ -375,7 +375,9 @@ d3.json("test.json", function(error, json) {
 </table>
 
 <br><br>
-Authoritative AWS EC2 Pricing <a href="http://aws.amazon.com/ec2/pricing/">here</a>.<br>
-Client source available on <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
+Web client source available at <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
+REST web service source available at <a href="https://github.com/kenklin/awsec2offering">githttps://github.com/kenklin/awsec2offering</a>.<br>
+<br>
+Authoritative AWS EC2 Pricing information <a href="http://aws.amazon.com/ec2/pricing/">here</a>.<br>
 </div>
 </body>
