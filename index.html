@@ -16,6 +16,10 @@
 
 <style>
 
+intro {
+  font: 12pt sans-serif;
+}
+
 body {
   font: 10px sans-serif;
 }
@@ -71,6 +75,25 @@ div {
 
 </style>
 <body>
+<h1>AWS EC2 Price Comparison Chart</h1>
+<intro>
+	<p>Software vendors using Amazon Web Service's Elastic Compute Cloud are
+	faced with understanding different EC2 offerings and their
+	<a href="http://aws.amazon.com/ec2/purchasing-options/reserved-instances/">costs</a>.
+	</p>
+	<p>This interactive chart makes it easy to visually price compare two sets
+	of AWS EC2 on-demand and reserved instance offerings, assuming continual
+	usage, and see break even points and monthly savings.
+	</p>
+	<p>Pricing data is dynamically obtained via the
+	<a href="https://github.com/kenklin/awsec2offering">awsec2offering</a> web
+	service whose reserved instance data is refreshed every 24 hours from AWS.
+	Please refer to the official AWS EC2 <a href="http://aws.amazon.com/ec2/pricing/">Pricing</a>
+	page for authoritative information.
+	</p>
+</intro>
+<br>
+
 <div>
 Region:
 <select id="availabilityZone">
@@ -168,13 +191,13 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // Add the title.
-svg.append("g")
-  .append("text")
-    .attr("x", width/16)
-    .attr("y", 20)
-    .style("font-size", "20px")
-    .style("font-weight", "bold")
-    .text("AWS EC2 Price Comparison");
+//svg.append("g")
+//  .append("text")
+//    .attr("x", width/16)
+//    .attr("y", 20)
+//    .style("font-size", "20px")
+//    .style("font-weight", "bold")
+//    .text("AWS EC2 Price Comparison");
     
 // Add the x-axis.
 svg.append("g")
@@ -472,10 +495,7 @@ d3.json(resturl, function(error, json) {
     </tr>
   </tbody>
 </table>
-
-<br><br>
-Authoritative information on the AWS EC2 Pricing <a href="http://aws.amazon.com/ec2/pricing/">page</a>.
-<br><br>
+<br>
 Web client source available at <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
 REST web service source available at <a href="https://github.com/kenklin/awsec2offering">githttps://github.com/kenklin/awsec2offering</a>.<br>
 </div>
