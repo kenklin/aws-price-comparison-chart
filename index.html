@@ -71,10 +71,61 @@ div {
 
 </style>
 <body>
+<div>
+Region:
+<select id="availabilityZone">
+  <option value="us-east-1a" selected="selected">US East</option>
+</select>
+Product:
+<select id="productDescription" onchange="update()">
+  <option value="linux" selected="selected">Linux/UNIX</option>
+  <option value="windows">Windows</option>
+</select>
+Utilization:
+<select id="offeringType" onchange="update()">
+  <option value="light">Light</option>
+  <option value="medium">Medium</option>
+  <option value="heavy" selected="selected">Heavy</option>
+</select>
+<p>
+Compare:
+<select id="instanceType1" onchange="update()">
+  <option selected="selected">t1.micro</option>
+  <option>m1.small</option><option>m1.medium</option><option>m1.large</option><option>m1.xlarge</option>
+  <option>m3.medium</option><option>m3.large</option><option>m3.xlarge</option><option>m3.2xlarge</option>
+  <option>m2.xlarge</option><option>m2.2xlarge</option><option>m2.4xlarge</option>
+  <option>cr1.8xlarge</option>
+  <option>hi1.4xlarge</option>
+  <option>i2.xlarge</option><option>i2.2xlarge</option><option>i2.4xlarge</option><option>i2.8xlarge</option>
+  <option>hs1.8xlarge</option>
+  <option>c1.medium</option><option>c1.xlarge</option>
+  <option>c3.large</option><option>c3.xlarge</option><option>c3.2xlarge</option><option>c3.4xlarge</option><option>c3.8xlarge</option>
+  <option>cg1.4xlarge</option>
+  <option>cc2.8xlarge</option>
+  <option>g2.2xlarge</option>
+</select>
+<select id="instanceType2" onchange="update()">
+  <option>t1.micro</option>
+  <option selected="selected">m1.small</option><option>m1.medium</option><option >m1.large</option><option>m1.xlarge</option>
+  <option>m3.medium</option><option>m3.large</option><option>m3.xlarge</option><option>m3.2xlarge</option>
+  <option>m2.xlarge</option><option>m2.2xlarge</option><option>m2.4xlarge</option>
+  <option>cr1.8xlarge</option>
+  <option>hi1.4xlarge</option>
+  <option>i2.xlarge</option><option>i2.2xlarge</option><option>i2.4xlarge</option><option>i2.8xlarge</option>
+  <option>hs1.8xlarge</option>
+  <option>c1.medium</option><option>c1.xlarge</option>
+  <option>c3.large</option><option>c3.xlarge</option><option>c3.2xlarge</option><option>c3.4xlarge</option><option>c3.8xlarge</option>
+  <option>cg1.4xlarge</option>
+  <option>cc2.8xlarge</option>
+  <option>g2.2xlarge</option>
+</select>
+</div>
+
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 // Inspired by http://bl.ocks.org/mbostock/3884955
-
+// and http://jsfiddle.net/YPBjj/
+// (via http://stackoverflow.com/questions/16745741/how-to-transition-a-multiseries-line-chart-to-a-new-dataset)
 var margin = {top: 20, right: 220, bottom: 20, left: 30},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -116,6 +167,33 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+// Add the title.
+svg.append("g")
+  .append("text")
+    .attr("x", width/16)
+    .attr("y", 20)
+    .style("font-size", "20px")
+    .style("font-weight", "bold")
+    .text("AWS EC2 Price Comparison");
+    
+// Add the x-axis.
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+  .append("text")
+    .attr("x", width + 3)
+    .text("Month");
+
+// Add the y-axis.
+svg.append("g")
+    .attr("class", "y axis")
+  .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Total Cost (USD)");
+
 var SECONDS_IN_YEAR = 31536000;
 var SECONDS_IN_MONTH = SECONDS_IN_YEAR / 12;// 2628000
 var HOURS_IN_MONTH = 365 * 24 / 12; 		// 730
@@ -150,19 +228,32 @@ function calculateTotalCost(offering, monthlyPrice) {
   return totalMonthlyCost;
 }
 
-//d3.json("test.json", function(error, json) {
-//d3.json("http://localhost:8080/awsec2offering/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small.", function(error, json) {
-d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small", function(error, json) {
+update();
+
+function update() {
+// Construct REST URL
+var resturl = "http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api"
+  + "/" + d3.select("#availabilityZone").node().value	// us-east-1a
+  + "/" + d3.select("#productDescription").node().value	// linux
+  + "/" + d3.select("#offeringType").node().value		// heavy
+  + "/" + d3.select("#instanceType1").node().value		// t1.micro
+  + "," + d3.select("#instanceType2").node().value;		// m1.small
+
+// resturl = "test.json"
+// resturl = "http://localhost:8080/awsec2offering/awsec2offering/api/us-east-1a/linux/heavy/t1.micro,m1.small."
+d3.json(resturl, function(error, json) {
   data = json.ec2offerings;
 
-  // Assign colors to each unique name	
+  // Assign colors to each unique name.	
   var color = d3.scale.category10();
   color.domain(data.map(function(p) { return createUniqueName(p); }));
 
+  // Coerce the data to numbers.
   data.forEach(function(d) {
     d.month = +d.month;
   });
   
+  // Extract the array in the json object into rates.
   var rates = d3.entries(data).map(function(offering) {
     var durationInYears = offering.value.duration / SECONDS_IN_YEAR;
     var monthlyPrice = offering.value.hourlyPrice * HOURS_IN_MONTH;
@@ -185,53 +276,42 @@ d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1
     d3.max(rates, function(c) { return d3.max(c.values, function(v) { return v.cost; }); })
   ]);
 
-  svg.append("g")
-    .append("text")
-      .attr("x", width/16)
-      .attr("y", 20)
-      .style("font-size", "20px")
-      .style("font-weight", "bold")
-      .text("AWS EC2 Price Comparison");
-  
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis)
-    .append("text")
-      .attr("x", width + 3)
-      .text("Month");
+  // Update the x-axis.
+  d3.transition(svg).select('.x.axis')
+      .call(xAxis);
 
-  svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Total Cost (USD)");
-  
+  // Update y-axis.
+  d3.transition(svg).select('.y.axis')
+      .call(yAxis);
+
+  // DATA JOIN
   var rate = svg.selectAll(".rate")
-      .data(rates)
-    .enter().append("g")
+      .data(rates);
+
+  // ENTER
+  var rateEnter = rate.enter().append("g")
       .attr("class", "rate");
 
-  rate.append("path")	// Draws the lines
+  // Add the lines.
+  rateEnter.append("path")
       .attr("class", "line")
       .attr("d", function(d) { return line(d.values); })
       .style("stroke", function(d) { return color(d.name); });
 
-  rate.append("text")
+  // Add the line labels in the right margin.
+  rateEnter.append("text")
       .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
       .attr("transform", function(d) { return "translate(" + x(d.value.month) + "," + y(d.value.cost) + ")"; })
       .attr("x", 3)
       .attr("dy", ".35em")
       .text(function(d) { return d.name; });
 
+  
   // http://bl.ocks.org/mbostock/3902569
+  // http://bl.ocks.org/gniemetz/4618602
+  // http://bl.ocks.org/benjchristensen/2657838
   // http://stackoverflow.com/questions/19003832/d3-x-value-mouseover-function-returns-nan
   // http://jsfiddle.net/U4CGz/7/
-  // http://bl.ocks.org/benjchristensen/2657838
   // http://code.shutterstock.com/rickshaw/examples/lines.html
   var focus = svg.append("g")
       .attr("class", "focus")
@@ -300,8 +380,27 @@ d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1
     }
 
     sortedRows = null;
-  }  
+  } // mousemove
+
+  
+  var rateUpdate = d3.transition(rate);
+
+  rateUpdate.select("path")
+      .transition().duration(600)
+      .attr("d", function(d) {
+    	return line(d.values); 
+      });
+
+  rateUpdate.select("text")
+      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+      .transition().duration(600)
+      .attr("transform", function(d,i) { return "translate(" + x(d.value.month) + "," + y(d.value.cost) + ")"; })
+      .text(function(d) { return d.name; });
+  
+  // EXIT
+  rate.exit().remove();
 });
+} // update
 </script>
 
 <div>
@@ -375,9 +474,9 @@ d3.json("http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api/us-east-1
 </table>
 
 <br><br>
+Authoritative information on the AWS EC2 Pricing <a href="http://aws.amazon.com/ec2/pricing/">page</a>.
+<br><br>
 Web client source available at <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
 REST web service source available at <a href="https://github.com/kenklin/awsec2offering">githttps://github.com/kenklin/awsec2offering</a>.<br>
-<br>
-Authoritative AWS EC2 Pricing information <a href="http://aws.amazon.com/ec2/pricing/">here</a>.<br>
 </div>
 </body>
