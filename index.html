@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
   <title>AWS EC2 Price Comparison Chart</title>
   <meta name="author" content="Ken Lin">
   <meta name="keywords" content="HTML,CSS,JSON,JavaScript,D3,AWS,EC2">
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -16,23 +20,8 @@
 
 <style>
 
-intro {
-  font: 12pt sans-serif;
-}
-
-body {
-  font: 10px sans-serif;
-}
-
-h1 {
-  font-size: 48px;
-  font-weight: 300;
-  letter-spacing: -2px;
-  margin: .3em 0 .1em 0;
-}
-
-th {
-  border: 1px solid silver;
+th, td {
+  font-size:12px
 }
 
 td.totcost {
@@ -51,7 +40,13 @@ td.savings {
 }
 
 div {
-  margin-left:30px
+  margin-left:35px;
+  margin-right:35px
+}
+
+div.github {
+  font-size:xx-small;
+  margin-left:0px;
 }
 
 .axis path,
@@ -63,6 +58,10 @@ div {
 
 .x.axis path {
   display: none;
+}
+
+.axis text {
+  font-size: 10px;
 }
 
 .line {
@@ -84,7 +83,7 @@ div {
 <body>
 <div>
 <h1>AWS EC2 Price Comparison Chart</h1>
-<intro>Select your comparison criteria, then mouseover the chart.</intro>
+Select your comparison criteria, then mouseover the chart.
 <p>
 </div>
 
@@ -143,7 +142,9 @@ Compare:
 // Inspired by http://bl.ocks.org/mbostock/3884955
 // and http://jsfiddle.net/YPBjj/
 // (via http://stackoverflow.com/questions/16745741/how-to-transition-a-multiseries-line-chart-to-a-new-dataset)
-var margin = {top: 20, right: 220, bottom: 20, left: 30},
+var svg_label_font_size = "10px";
+
+var margin = {top: 20, right: 220, bottom: 20, left: 35},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -151,11 +152,7 @@ var bisectMonth = d3.bisector(function(d) { return d.month; }).left,
     formatCurrencyValue = d3.format(",.2f"),
     formatCurrency = function(d) { return "$" + formatCurrencyValue(d); },
     formatPercentValue = d3.format(",.0f"),
-    formatPercent = function(a,b) {
-      return (b > 0)
-        ? "(" + formatPercentValue(100 * a / b) + "%)"
-        : "";
-    };
+    formatPercent = function(a,b) { return (b > 0) ? formatPercentValue(100 * a / b) + "%" : ""; };
 
 var x = d3.scale.linear()
     .range([0, width]);
@@ -317,6 +314,7 @@ d3.json(resturl, function(error, json) {
 
   // Add the line labels in the right margin.
   rateEnter.append("text")
+      .attr("font-size", svg_label_font_size)
       .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
       .attr("transform", function(d) { return "translate(" + x(d.value.month) + "," + y(d.value.cost) + ")"; })
       .attr("x", 3)
@@ -348,7 +346,7 @@ d3.json(resturl, function(error, json) {
       .attr("width", width)
       .attr("height", height)
       .on("mouseover", function() { focus.style("display", null); })
-      .on("mouseout", function() { focus.style("display", "none"); })
+//    .on("mouseout", function() { focus.style("display", "none"); })
       .on("mousemove", mousemove);
 
   function mousemove() {
@@ -372,7 +370,7 @@ d3.json(resturl, function(error, json) {
 	sortedRows.sort(function(a,b) { return b.cost - a.cost;});
 
     // https://groups.google.com/forum/#!topic/d3-js/LPVuNpPm0Wc
-    d3.select("#th-cost").text(month + " Month Total");
+    d3.select("#th-cost").text(month + " Month");
     for (i = 0; i < sortedRows.length; i++) {
       // Fixed columns
       d3.select("#td-fixed" + i).text(formatCurrency(sortedRows[i].fixedPrice));
@@ -391,7 +389,7 @@ d3.json(resturl, function(error, json) {
         var jCostId = "#td-cost" + i + "-" + j;
         var savings = iCost - jCost;
         d3.select(jCostId)
-          .text("+" + formatCurrency(savings) + formatPercent(savings, jCost))
+          .html("+" + formatCurrency(savings) + "<br>+" + formatPercent(savings, jCost))
           .style('color', color(sortedRows[j].name));      
   	  }
     }
@@ -421,13 +419,13 @@ d3.json(resturl, function(error, json) {
 </script>
 
 <div>
-<table id="cost-table">
+<table id="cost-table" class="table table-hover">
   <thead>
     <tr>
       <th>EC2 Offering</th>
       <th>Fixed</th>
       <th>Monthly</th>
-      <th id="th-cost">Month Total</th>
+      <th id="th-cost">Month</th>
       <th>Savings 1</th>
       <th>Savings 2</th>
       <th>Savings 3</th>
@@ -490,24 +488,34 @@ d3.json(resturl, function(error, json) {
   </tbody>
 </table>
 
+<p>Software vendors using Amazon Web Service's Elastic Compute Cloud need to 
+evaluate different EC2 on-demand and reserved instance offerings and their
+<a href="http://aws.amazon.com/ec2/purchasing-options/reserved-instances/">costs</a>.
+</p>
+<p>This interactive chart makes it easy to visually price compare two sets
+of AWS EC2 instance offerings, assuming continual usage, and see break even
+points and monthly savings.
+</p>
+<p>Pricing data is dynamically obtained via the
+<a href="https://github.com/kenklin/awsec2offering">awsec2offering</a> web
+service whose reserved instance data is refreshed every 24 hours from AWS.
+Please refer to the official AWS EC2 <a href="http://aws.amazon.com/ec2/pricing/">Pricing</a>
+page for authoritative information.
+</p>
+
 <br>
-<intro>
-	<p>Software vendors using Amazon Web Service's Elastic Compute Cloud need to 
-	evaluate different EC2 on-demand and reserved instance offerings and their
-	<a href="http://aws.amazon.com/ec2/purchasing-options/reserved-instances/">costs</a>.
-	</p>
-	<p>This interactive chart makes it easy to visually price compare two sets
-	of AWS EC2 instance offerings, assuming continual usage, and see break even
-	points and monthly savings.
-	</p>
-	<p>Pricing data is dynamically obtained via the
-	<a href="https://github.com/kenklin/awsec2offering">awsec2offering</a> web
-	service whose reserved instance data is refreshed every 24 hours from AWS.
-	Please refer to the official AWS EC2 <a href="http://aws.amazon.com/ec2/pricing/">Pricing</a>
-	page for authoritative information.
-	</p>
-</intro>
-Web client source available at <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
-REST web service source available at <a href="https://github.com/kenklin/awsec2offering">githttps://github.com/kenklin/awsec2offering</a>.<br>
+<address>
+  <strong>Ken Lin</strong> -
+  <a href="http://kenlin.com"><strong>http://kenlin.com</strong></a>
+  <div class="github">
+    <br>
+    Web client source - <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
+    REST web service source - <a href="https://github.com/kenklin/awsec2offering">githttps://github.com/kenklin/awsec2offering</a>.<br>
+  </div>
+</address>
 </div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 </body>
+</html>
