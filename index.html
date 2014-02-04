@@ -226,6 +226,13 @@ function createUniqueName(value, durationInYears) {
     + " " + value.instanceType;
 }
 
+function splitUniqueNameToHTML(name) {
+  var i = name.lastIndexOf(" ");
+  return i == -1
+    ? name
+    : name.substr(0,i) + "<br>" + name.substr(i);
+}
+
 function calculateTotalCost(offering, monthlyPrice) {
   var totalMonthlyCost = [];
   var durationInMonths = offering.value.duration / SECONDS_IN_MONTH;
@@ -247,9 +254,10 @@ function calculateTotalCost(offering, monthlyPrice) {
   return totalMonthlyCost;
 }
 
-update(true);
+var currentMonth = 36;
+update();
 
-function update(initial) {
+function update() {
 // Construct REST URL
 var resturl = "http://p1software-eb1.elasticbeanstalk.com/awsec2offering/api"
   + "/" + d3.select("#availabilityZone").node().value	// us-east-1a
@@ -354,19 +362,17 @@ d3.json(resturl, function(error, json) {
       .on("mouseout", function() { focus.style("display", "none"); })
       .on("mousemove", mousemove);
 
-  // Initial paint of table
-  if (initial) {
-	updateTable(36, rates);
-  }
+  // Force table paint
+  updateTable(currentMonth, rates);
 
   function mousemove() {
-    var x0 = x.invert(d3.mouse(this)[0]),	// 0.00 .. 36.00
-        month = Math.round(x0);				// 0 .. 36
+    var x0 = x.invert(d3.mouse(this)[0]);	// 0.00 .. 36.00
+    currentMonth = Math.round(x0);			// 0 .. 36
     circles.attr('transform', function (d) {
-      return 'translate(' + x(month) + ',' + y(d.values[month].cost) + ')';
+      return 'translate(' + x(currentMonth) + ',' + y(d.values[currentMonth].cost) + ')';
     });
 
-	updateTable(month, rates);
+	updateTable(currentMonth, rates);
   } // mousemove
 
   function updateTable(month, rates) {
@@ -393,7 +399,8 @@ d3.json(resturl, function(error, json) {
       // Calculate total costs
       var iCost = sortedRows[i].cost;
       var iCostId = "#td-cost" + i;
-      d3.select("#td-name" + i).text(sortedRows[i].name);
+//      d3.select("#td-name" + i).text(sortedRows[i].name);
+      d3.select("#td-name" + i).html(splitUniqueNameToHTML(sortedRows[i].name));
       d3.select(iCostId).text(formatCurrency(iCost))
         .style('color', color(sortedRows[i].name));
 
