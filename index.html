@@ -2,21 +2,28 @@
 <html lang="en">
 <head>
   <title>AWS EC2 Price Comparison Chart</title>
-  <meta name="author" content="Ken Lin">
-  <meta name="keywords" content="HTML,CSS,JSON,JavaScript,D3,AWS,EC2">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
-  <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <meta name="description" content="Ken Lin">
+  <meta name="author" content="Ken Lin">
+  <meta name="keywords" content="HTML,CSS,JSON,JavaScript,D3,AWS,EC2">
 
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-  ga('create', 'UA-45108867-1', 'kenlin.com');
-  ga('send', 'pageview');
-</script>
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="/css/bootstrap3-theme.css">	<!-- From http://getbootstrap.com/examples/theme/ -->
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-45108867-1', 'kenlin.com');
+    ga('send', 'pageview');
+  </script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 </head>
 
 <style>
@@ -38,16 +45,6 @@ td.cost {
 td.savings {
   text-align:right;
   font-style:italic
-}
-
-div {
-  margin-left:35px;
-  margin-right:35px
-}
-
-div.github {
-  font-size:xx-small;
-  margin-left:0px;
 }
 
 i {
@@ -85,62 +82,70 @@ i {
 }
 
 </style>
-<body>
-<div>
-<h1>AWS EC2 Price Comparison Chart</h1>
-Select your comparison criteria, then mouseover the chart.
-<p>
-</div>
+<body role="document">
 
-<div>
-Region:
-<select id="availabilityZone">
-  <option value="us-east-1a" selected="selected">US East</option>
-</select>
-Product:
-<select id="productDescription" onchange="update()">
-  <option value="linux" selected="selected">Linux/UNIX</option>
-  <option value="windows">Windows</option>
-</select>
-Utilization:
-<select id="offeringType" onchange="update()">
-  <option value="light">Light</option>
-  <option value="medium">Medium</option>
-  <option value="heavy" selected="selected">Heavy</option>
-</select>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Compare:
-<select id="instanceType1" onchange="update()">
-  <option selected="selected">t1.micro</option>
-  <option>m1.small</option><option>m1.medium</option><option>m1.large</option><option>m1.xlarge</option>
-  <option>m3.medium</option><option>m3.large</option><option>m3.xlarge</option><option>m3.2xlarge</option>
-  <option>m2.xlarge</option><option>m2.2xlarge</option><option>m2.4xlarge</option>
-  <option>cr1.8xlarge</option>
-  <option>hi1.4xlarge</option>
-  <option>i2.xlarge</option><option>i2.2xlarge</option><option>i2.4xlarge</option><option>i2.8xlarge</option>
-  <option>hs1.8xlarge</option>
-  <option>c1.medium</option><option>c1.xlarge</option>
-  <option>c3.large</option><option>c3.xlarge</option><option>c3.2xlarge</option><option>c3.4xlarge</option><option>c3.8xlarge</option>
-  <option>cg1.4xlarge</option>
-  <option>cc2.8xlarge</option>
-  <option>g2.2xlarge</option>
-</select>
-<select id="instanceType2" onchange="update()">
-  <option>t1.micro</option>
-  <option selected="selected">m1.small</option><option>m1.medium</option><option >m1.large</option><option>m1.xlarge</option>
-  <option>m3.medium</option><option>m3.large</option><option>m3.xlarge</option><option>m3.2xlarge</option>
-  <option>m2.xlarge</option><option>m2.2xlarge</option><option>m2.4xlarge</option>
-  <option>cr1.8xlarge</option>
-  <option>hi1.4xlarge</option>
-  <option>i2.xlarge</option><option>i2.2xlarge</option><option>i2.4xlarge</option><option>i2.8xlarge</option>
-  <option>hs1.8xlarge</option>
-  <option>c1.medium</option><option>c1.xlarge</option>
-  <option>c3.large</option><option>c3.xlarge</option><option>c3.2xlarge</option><option>c3.4xlarge</option><option>c3.8xlarge</option>
-  <option>cg1.4xlarge</option>
-  <option>cc2.8xlarge</option>
-  <option>g2.2xlarge</option>
-</select>
-</div>
+  <!-- Fixed navbar -->
+  <div id="header" class="navbar navbar-inverse navbar-fixed-top" role="navigation"></div><script>$("#header").load("/kenlin-header.html");</script>
+
+<div class="container-fluid" role="main">
+
+  <div class="row">
+    <h1>AWS EC2 Price Comparison Chart</h1>
+    Select your comparison criteria, then mouseover the chart.
+    <p>
+  </div>
+
+  <div class="row">
+  Region:
+    <select id="availabilityZone">
+      <option value="us-east-1a" selected="selected">US East</option>
+    </select>
+  Product:
+    <select id="productDescription" onchange="update()">
+      <option value="linux" selected="selected">Linux/UNIX</option>
+      <option value="windows">Windows</option>
+    </select>
+  Utilization:
+    <select id="offeringType" onchange="update()">
+      <option value="light">Light</option>
+      <option value="medium">Medium</option>
+      <option value="heavy" selected="selected">Heavy</option>
+    </select>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    Compare:
+    <select id="instanceType1" onchange="update()">
+      <option selected="selected">t1.micro</option>
+      <option>m1.small</option><option>m1.medium</option><option>m1.large</option><option>m1.xlarge</option>
+      <option>m3.medium</option><option>m3.large</option><option>m3.xlarge</option><option>m3.2xlarge</option>
+      <option>m2.xlarge</option><option>m2.2xlarge</option><option>m2.4xlarge</option>
+      <option>cr1.8xlarge</option>
+      <option>hi1.4xlarge</option>
+      <option>i2.xlarge</option><option>i2.2xlarge</option><option>i2.4xlarge</option><option>i2.8xlarge</option>
+      <option>hs1.8xlarge</option>
+      <option>c1.medium</option><option>c1.xlarge</option>
+      <option>c3.large</option><option>c3.xlarge</option><option>c3.2xlarge</option><option>c3.4xlarge</option><option>c3.8xlarge</option>
+      <option>cg1.4xlarge</option>
+      <option>cc2.8xlarge</option>
+      <option>g2.2xlarge</option>
+    </select>
+    <select id="instanceType2" onchange="update()">
+      <option>t1.micro</option>
+      <option selected="selected">m1.small</option><option>m1.medium</option><option >m1.large</option><option>m1.xlarge</option>
+      <option>m3.medium</option><option>m3.large</option><option>m3.xlarge</option><option>m3.2xlarge</option>
+      <option>m2.xlarge</option><option>m2.2xlarge</option><option>m2.4xlarge</option>
+      <option>cr1.8xlarge</option>
+      <option>hi1.4xlarge</option>
+      <option>i2.xlarge</option><option>i2.2xlarge</option><option>i2.4xlarge</option><option>i2.8xlarge</option>
+      <option>hs1.8xlarge</option>
+      <option>c1.medium</option><option>c1.xlarge</option>
+      <option>c3.large</option><option>c3.xlarge</option><option>c3.2xlarge</option><option>c3.4xlarge</option><option>c3.8xlarge</option>
+      <option>cg1.4xlarge</option>
+      <option>cc2.8xlarge</option>
+      <option>g2.2xlarge</option>
+    </select>
+  </div> <!-- /Pulldown menus -->
+
+<div id="d3div" class="row"></div>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
@@ -180,7 +185,7 @@ var line = d3.svg.line()
     .x(function(d) { return x(d.month); })
     .y(function(d) { return y(d.cost); });
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#d3div").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -416,7 +421,6 @@ d3.json(resturl, function(error, json) {
     }
   } // updateTable
 
-  
   var rateUpdate = d3.transition(rate);
 
   rateUpdate.select("path")
@@ -437,7 +441,7 @@ d3.json(resturl, function(error, json) {
 } // update
 </script>
 
-<div>
+<div class="row">
 <table id="cost-table" class="table table-hover">
   <thead>
     <tr>
@@ -506,35 +510,43 @@ d3.json(resturl, function(error, json) {
     </tr>
   </tbody>
 </table>
+</div> <!-- /Cost table -->
 
-<p>Software vendors using Amazon Web Service's Elastic Compute Cloud need to 
+<div class="row"><p>
+Software vendors using Amazon Web Service's Elastic Compute Cloud need to 
 evaluate different EC2 on-demand and reserved instance offerings and their
 <a href="http://aws.amazon.com/ec2/purchasing-options/reserved-instances/">costs</a>.
-</p>
-<p>This interactive chart makes it easy to visually price compare two sets
+</p></div>
+
+<div class="row"><p>
+This interactive chart makes it easy to visually price compare two sets
 of AWS EC2 instance offerings, assuming continual usage, and see break even
 points and monthly savings.
-</p>
-<p>Pricing data is dynamically obtained via the
+</p></div>
+
+<div class="row"><p>
+Pricing data is dynamically obtained via the
 <a href="https://github.com/kenklin/awsec2offering">awsec2offering</a> web
 service whose reserved instance data is refreshed every 24 hours from AWS.
 Please refer to the official AWS EC2 <a href="http://aws.amazon.com/ec2/pricing/">Pricing</a>
 page for authoritative information.
-</p>
+</p></div>
 
-<br>
+<div class="row"><p>
 Web client source - <a href="https://github.com/kenklin/aws-price-comparison-chart">github.com/kenklin/aws-price-comparison-chart</a>.<br>
 REST web service source - <a href="https://github.com/kenklin/awsec2offering">githttps://github.com/kenklin/awsec2offering</a>.<br>
-</div>
+</p></div>
+
+<hr>
 
 <!-- Footer -->
-<hr>
-<div class="row-fluid text-center"></div>
-<div id="footer" class="row-fluid text-center"></div>
+<div id="footer" class="row text-center"></div><script>$("#footer").load("/kenlin-footer.html");</script>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-<script>$("#footer").load("/footer.html");</script>
+</div> <!-- /container -->
 
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 </body>
 </html>
