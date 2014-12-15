@@ -6,7 +6,7 @@ Software vendors using Amazon Web Service's Elastic Compute Cloud are faced with
 This interactive chart makes it easy to visually price compare AWS EC2 on-demand and reserved instance offerings and see break even points and monthly savings.  Try it [here](http://kenlin.com/x/aws-price-comparison-chart/).
 
 
-[![Alt text](https://raw2.github.com/kenklin/aws-price-comparison-chart/master/aws-price-comparison-chart-small.png)]
+[![Alt text](https://raw.github.com/kenklin/aws-price-comparison-chart/master/aws-price-comparison-chart-small.png)]
 (http://kenlin.com/x/aws-price-comparison-chart/)<br>
 
 
